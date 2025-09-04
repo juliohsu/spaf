@@ -1,0 +1,28 @@
+# Comando para iniciar a imagem docker
+
+docker-compose up -d
+
+# Comando para abrir o terminal do docker do kafka
+
+docker exec -it kafka bash
+
+# Comando para criar o tópico de vendas simuladas (já é executado no docker-compose, mas demora alguns segundos para criar o tópico)
+
+kafka-topics --create \
+  --topic vendas-simuladas \
+  --bootstrap-server localhost:9092 \
+  --replication-factor 1 \
+  --partitions 1
+
+
+# Comando para listar os tópicos
+
+kafka-topics --list --bootstrap-server localhost:9092
+
+# kafka ui
+
+http://localhost:8080
+
+# endereço kafka:
+
+http://localhost:9092
