@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS sales_summary (
+    id SERIAL PRIMARY KEY,
+    transactionDate DATE NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    totalSales NUMERIC NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

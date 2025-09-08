@@ -1,15 +1,29 @@
-from locust import HttpUser, task, between
+from locust import User, task, between
+from kafka import KafkaProducer
+import json, random, time
 
-class SalesUser(HttpUser):
-    wait_time = between(0.01, 0.02)  # Adjust to target 50-100 requests/sec
+
+class KafkaUser(User):
+    # Espera entre tarefas → ~50-100 eventos/s
+    wait_time = between(0.01, 0.02)
+
+    def on_start(self):
+        # Conexão com o Kafka
+        self.producer = KafkaProducer(
+            bootstrap_servers="localhost:9092",  
+            value_serializer=lambda v: json.dumps(v).encode("utf-8")
+        )
 
     @task
-    def generate_sale(self):
-        sale_data = {
-            "user_id": f"user_{self.locust_id}",
-            "product_id": f"prod_{self.locust_id % 100}",
-            "price": round(self.locust_id * 0.5 + 10, 2),
-            "quantity": self.locust_id % 5 + 1,
-            "timestamp": "2025-09-04T07:05:00-03:00"
-        }
-        self.client.post("/sales", json=sale_data)
+    def send_event(self):
+        sale = {
+                "productId": "prod_8",
+                "productCategory": "electronics",
+                "productPrice": 117.01,
+                "productQuantity": 1
+            }
+
+
+        # Envia para o tópico do Kafka
+        self.producer.send("vendas-simuladas", value=sale)
+        print(f"Sent: {sale}")
