@@ -60,5 +60,97 @@ public class DataPipelineJob {
                 .withUsername(username)
                 .withPassword(password)
                 .build();
+
+        transactionStream.addSink(JdbcSink.sink(
+                "CREATE TABLE IF NOT EXISTS transactions (" +
+                        "transaction_id VARCHAR(255) PRIMARY KEY, " +
+                        "product_id VARCHAR(255), " +
+                        "product_name VARCHAR(255), " +
+                        "product_category VARCHAR(255), " +
+                        "product_price DOUBLE PRECISION, " +
+                        "product_quantity INTEGER, " +
+                        "product_brand VARCHAR(255), " +
+                        "total_amount DOUBLE PRECISION, " +
+                        "currency VARCHAR(255), " +
+                        "customer_id VARCHAR(255), " +
+                        "transaction_date TIMESTAMP, " +
+                        "payment_method VARCHAR(255) " +
+                        ")",
+                (JdbcStatementBuilder<Transaction>) (preparedStatement, transaction) -> {
+
+                },
+                execOptions,
+                connOptions)).name("Create Transactions Table Sink");
+
+        transactionStream.addSink(JdbcSink.sink(
+                "CREATE TABLE IF NOT EXISTS sales_per_category (" +
+                        "transaction_date DATE, " +
+                        "category VARCHAR(255), " +
+                        "total_sales DOUBLE PRECISION, " +
+                        "PRIMARY KEY (transaction_date, category)" +
+                        ")",
+                (JdbcStatementBuilder<Transaction>) (preparedStatement, transaction) -> {
+
+                },
+                execOptions,
+                connOptions)).name("Create Sales Per Category Table");
+
+        transactionStream.addSink(JdbcSink.sink(
+                "CREATE TABLE IF NOT EXISTS sales_per_day (" +
+                        "transaction_date DATE PRIMARY KEY, " +
+                        "total_sales DOUBLE PRECISION " +
+                        ")",
+                (JdbcStatementBuilder<Transaction>) (preparedStatement, transaction) -> {
+
+                },
+                execOptions,
+                connOptions)).name("Create Sales Per Day Table");
+
+        transactionStream.addSink(JdbcSink.sink(
+                "CREATE TABLE IF NOT EXISTS sales_per_month (" +
+                        "year INTEGER, " +
+                        "month INTEGER, " +
+                        "total_sales DOUBLE PRECISION, " +
+                        "PRIMARY KEY (year, month)" +
+                        ")",
+                (JdbcStatementBuilder<Transaction>) (preparedStatement, transaction) -> {
+
+                },
+                execOptions,
+                connOptions)).name("Create Sales Per Month Table");
+        transactionStream.addSink(JdbcSink.sink(
+                "INSERT INTO transactions(transaction_id, product_id, product_name, product_category, product_price, " +
+                        "product_quantity, product_brand, total_amount, currency, customer_id, transaction_date, payment_method) "
+                        +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                        "ON CONFLICT (transaction_id) DO UPDATE SET " +
+                        "product_id = EXCLUDED.product_id, " +
+                        "product_name  = EXCLUDED.product_name, " +
+                        "product_category  = EXCLUDED.product_category, " +
+                        "product_price = EXCLUDED.product_price, " +
+                        "product_quantity = EXCLUDED.product_quantity, " +
+                        "product_brand = EXCLUDED.product_brand, " +
+                        "total_amount  = EXCLUDED.total_amount, " +
+                        "currency = EXCLUDED.currency, " +
+                        "customer_id  = EXCLUDED.customer_id, " +
+                        "transaction_date = EXCLUDED.transaction_date, " +
+                        "payment_method = EXCLUDED.payment_method " +
+                        "WHERE transactions.transaction_id = EXCLUDED.transaction_id",
+                (JdbcStatementBuilder<Transaction>) (preparedStatement, transaction) -> {
+                    preparedStatement.setString(1, transaction.getTransactionId());
+                    preparedStatement.setString(2, transaction.getProductId());
+                    preparedStatement.setString(3, transaction.getProductName());
+                    preparedStatement.setString(4, transaction.getProductCategory());
+                    preparedStatement.setDouble(5, transaction.getProductPrice());
+                    preparedStatement.setInt(6, transaction.getProductQuantity());
+                    preparedStatement.setString(7, transaction.getProductBrand());
+                    preparedStatement.setDouble(8, transaction.getTotalAmount());
+                    preparedStatement.setString(9, transaction.getCurrency());
+                    preparedStatement.setString(10, transaction.getCustomerId());
+                    preparedStatement.setTimestamp(11, transaction.getTransactionDate());
+                    preparedStatement.setString(12, transaction.getPaymentMethod());
+                },
+                execOptions,
+                connOptions)).name("Insert into transactions table sink");
     }
 }
