@@ -48,5 +48,17 @@ public class DataPipelineJob {
                 "Kafka source");
 
         transactionStream.print();
+        JdbcExecutionOptions execOptions = new JdbcExecutionOptions.Builder()
+                .withBatchSize(1000)
+                .withBatchIntervalMs(200)
+                .withMaxRetries(5)
+                .build();
+
+        JdbcConnectionOptions connOptions = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
+                .withUrl(jdbcUrl)
+                .withDriverName("org.postgresql.Driver")
+                .withUsername(username)
+                .withPassword(password)
+                .build();
     }
 }
