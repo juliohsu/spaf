@@ -35,5 +35,18 @@ public class DataPipelineJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         String topic = "financial_transactions";
+
+        KafkaSource<Transaction> source = KafkaSource.<Transaction>builder()
+                .setBootstrapServers("localhost:9092")
+                .setTopics(topic)
+                .setGroupId("flink-group")
+                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setValueOnlyDeserializer(new JSONValueDeserializationSchema())
+                .build();
+
+        DataStream<Transaction> transactionStream = env.fromSource(source, WatermarkStrategy.noWatermarks(),
+                "Kafka source");
+
+        transactionStream.print();
     }
 }
